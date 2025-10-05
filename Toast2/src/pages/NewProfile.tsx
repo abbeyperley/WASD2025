@@ -1,4 +1,5 @@
-import { useState } from 'react';
+//
+import FadeIn from '@/components/ui/FadeIn';
 import ProfileForm from '@/components/profile/ProfileForm';
 import { useProfiles } from '@/context/ProfileContext';
 import { useNavigate } from 'react-router-dom';
@@ -13,13 +14,15 @@ export default function NewProfile() {
       <div className="absolute top-8 right-8 z-50">
         <LogoPopover />
       </div>
-      <ProfileForm
-        isNew={true}
-        onSave={(profile) => {
-          addProfile(profile);
-          navigate('/profiles');
-        }}
-      />
+      <FadeIn>
+        <ProfileForm
+          isNew={true}
+          onSave={(profile) => {
+            addProfile(profile);
+            navigate('/profiles');
+          }}
+        />
+      </FadeIn>
     </div>
   );
 }

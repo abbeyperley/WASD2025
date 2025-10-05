@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import LogoIcon from '@/components/ui/LogoIcon';
+import FadeIn from '@/components/ui/FadeIn';
 import { Label } from '@/components/ui/label';
 
 
@@ -26,8 +27,8 @@ export default function LandingPage() {
 
   return (
   <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-br from-amber-100 via-orange-50 to-blue-200 font-[PP Fragment Text Regular]">
+    <FadeIn>
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center justify-between gap-12">
-        
         {/* Left Side - Branding */}
         <div className="flex-1 space-y-6 text-center lg:text-left">
           <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
@@ -35,7 +36,7 @@ export default function LandingPage() {
             <span className="inline-block align-middle"><LogoIcon size={72} /></span>
           </div>
           <p className="text-xl leading-relaxed max-w-md text-[#28272E]">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            A tool for busy minds to plan for celebration when things get hard. Toast with your friends, family, or anyone.
           </p>
         </div>
 
@@ -137,6 +138,7 @@ export default function LandingPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </FadeIn>
+  </div>
   );
 }

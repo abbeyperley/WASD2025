@@ -1,4 +1,5 @@
 import React from 'react';
+import FadeIn from '@/components/ui/FadeIn';
 import { useProfiles } from '@/context/ProfileContext';
 import { useNavigate } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
@@ -61,183 +62,158 @@ export default function Dashboard() {
   // Helper to check if a date matches any profile's birthday (month and day only)
   function getBirthdaysOnDate(date: Date) {
     return profiles.filter((profile: { birthday: string }) => {
-      const [month, day] = profile.birthday.split(' ');
-      if (!month || !day) return false;
-      const birthdayMonth = new Date(`${month} 1, 2000`).getMonth();
-      const birthdayDay = parseInt(day, 10);
-      return date.getMonth() === birthdayMonth && date.getDate() === birthdayDay;
+      if (!profile.birthday) return false;
+      const bday = birthdayStringToDate(profile.birthday);
+      return (
+        bday &&
+        bday.getMonth() === date.getMonth() &&
+        bday.getDate() === date.getDate()
+      );
     });
   }
 
-  // Precompute a set of unique birthday days (month-day) for all profiles
-  const uniqueBirthdayDays = React.useMemo(() => {
-    const set = new Set();
-    profiles.forEach((profile: { birthday: string }) => {
-      const [month, day] = profile.birthday.split(' ');
-      if (month && day) {
-        set.add(`${month}-${parseInt(day, 10)}`);
-      }
-    });
-    return set;
-  }, [profiles]);
+  // For calendar modifiers
+  const birthdayModifier = (date: Date) => getBirthdaysOnDate(date).length > 0;
+  const birthdayProfiles = selectedDate ? getBirthdaysOnDate(selectedDate) : [];
+  const sortedBirthdays = getSortedUpcomingBirthdays(profiles);
 
-  // Modifier: only one dot per unique birthday day
-  const birthdayModifier = (date: Date) => {
-    // Only one dot per unique birthday per day, regardless of outside days
-    const month = date.toLocaleString('default', { month: 'long' });
-    const day = date.getDate();
-    return uniqueBirthdayDays.has(`${month}-${day}`);
-  };
-
-  // Handle day click: always set selectedDate, which controls popover
   function handleDayClick(date: Date) {
-    if (birthdayModifier(date)) {
-      setSelectedDate(date);
-    } else {
-      setSelectedDate(null);
-    }
+    setSelectedDate(date);
   }
-
-  // Get unique birthday profiles for selected date
-  const birthdayProfiles = selectedDate
-    ? Array.from(new Map(getBirthdaysOnDate(selectedDate).map(p => [p.name, p])).values())
-    : [];
-
-  // Prepare carousel data
-  const sortedBirthdays = React.useMemo(() => getSortedUpcomingBirthdays(profiles), [profiles]);
 
   return (
-    <>
-      <div className="min-h-screen p-8 bg-gradient-to-br from-amber-100 via-orange-50 to-blue-200 font-[PP Fragment Text Regular] relative">
-      <div className="absolute top-8 right-8 z-50">
-        <LogoPopover />
-      </div>
-      <div className="flex flex-col items-start">
-        <h1 className="text-6xl text-[#28272E] leading-tight">
-          <span className="font-normal text-5xl">{greeting}</span><br />
-          <span className="font-bold">{signupName ? signupName : ''}</span>
-        </h1>
-        {/* Buttons moved below carousel */}
-        <div className="flex flex-row gap-12 mt-8 w-full">
-          {/* Calendar Section */}
-          <div className="p-8 rounded-3xl shadow-xl bg-white" style={{ width: '480px', maxWidth: '100%', flexShrink: 0 }}>
-            <Popover open={!!selectedDate} onOpenChange={open => { if (!open) setSelectedDate(null); }}>
-              <PopoverTrigger asChild>
-                <div>
-                  <Calendar
-                    showOutsideDays={false}
-                    modifiers={{ birthday: birthdayModifier }}
-                    modifiersClassNames={{ birthday: 'birthday-highlight' }}
-                    className="w-full text-lg"
-                    onDayClick={handleDayClick}
-                  />
-                </div>
-              </PopoverTrigger>
-              <PopoverContent side="right" align="center" sideOffset={8} className="text-center">
-                {birthdayProfiles.length > 0 && (
+    <div className="min-h-screen p-8 animated-gradient font-[PP Fragment Text Regular] relative">
+      <FadeIn>
+        <div className="absolute top-8 right-8 z-50">
+          <LogoPopover />
+        </div>
+        <div className="flex flex-col items-start w-full max-w-7xl mx-auto">
+          <h1 className="text-6xl text-[#28272E] leading-tight">
+            <span className="font-normal text-5xl">{greeting}</span><br />
+            <span className="font-bold">{signupName ? signupName : ''}</span>
+          </h1>
+          {/* Buttons moved below carousel */}
+          <div className="flex flex-row gap-12 mt-8 w-full">
+            {/* Calendar Section */}
+            <div className="p-8 rounded-3xl shadow-xl bg-white" style={{ width: '480px', maxWidth: '100%', flexShrink: 0 }}>
+              <Popover open={!!selectedDate} onOpenChange={open => { if (!open) setSelectedDate(null); }}>
+                <PopoverTrigger asChild>
                   <div>
-                    {birthdayProfiles.map((profile) => (
-                      <div key={profile.name} className="mb-2">
-                        <div><b>{profile.name}</b>'s birthday</div>
-                        <Button
-                          className="mt-2 hover:bg-black/10 transition-colors"
+                    <Calendar
+                      showOutsideDays={false}
+                      modifiers={{ birthday: birthdayModifier }}
+                      modifiersClassNames={{ birthday: 'birthday-highlight' }}
+                      className="w-full text-lg"
+                      onDayClick={handleDayClick}
+                    />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent side="right" align="center" sideOffset={8} className="text-center">
+                  {birthdayProfiles.length > 0 && (
+                    <div>
+                      {birthdayProfiles.map((profile) => (
+                        <div key={profile.name} className="mb-2">
+                          <div><b>{profile.name}</b>'s birthday</div>
+                          <Button
+                            className="mt-2 hover:bg-black/10 transition-colors"
+                            onClick={() => navigate(`/profile/${encodeURIComponent(profile.name)}`)}
+                          >
+                            View Profile
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </PopoverContent>
+              </Popover>
+            </div>
+            {/* Next up... birthday carousel */}
+            <div className="flex flex-col items-start justify-start md:mt-0 mt-0">
+              <h2 className="text-3xl font-normal mb-4 ml-2">Next up...</h2>
+              <div className="rounded-3xl shadow-2xl bg-gradient-to-br from-[#406080] to-[#6092B6] p-10 min-w-[400px] w-full flex flex-col" style={{minWidth: 400, width: '100%'}}>
+                {sortedBirthdays.length === 0 ? (
+                  <div className="text-white text-lg">There are no profiles yet.</div>
+                ) : (
+                  <Carousel
+                    items={sortedBirthdays}
+                    renderItem={(profile) => {
+                      const days = daysUntilBirthday(profile.birthday);
+                      const [month, day] = profile.birthday.split(' ');
+                      return (
+                        <button
+                          className="w-full text-left focus:outline-none hover:bg-black/20 focus:bg-black/30 transition-colors"
+                          style={{ background: 'none', border: 'none', padding: 0 }}
                           onClick={() => navigate(`/profile/${encodeURIComponent(profile.name)}`)}
                         >
-                          View Profile
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                          <div className="flex flex-row items-center justify-between gap-12 w-full">
+                            <div className="min-w-0">
+                              <div className="text-white text-lg font-bold mb-2">{month} {day}</div>
+                              <div className="text-white text-5xl font-serif mb-4 whitespace-nowrap" style={{minWidth: 0}}>{profile.name}</div>
+                            </div>
+                            <div className="flex flex-col items-center justify-center bg-white/20 rounded-2xl px-7 py-4 flex-shrink-0">
+                              <div className="text-5xl font-bold text-white">{days}</div>
+                              <div className="text-base text-white font-semibold">more days</div>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    }}
+                  />
                 )}
-              </PopoverContent>
-            </Popover>
-          </div>
-          {/* Next up... birthday carousel */}
-          <div className="flex flex-col items-start justify-start md:mt-0 mt-0">
-            <h2 className="text-3xl font-normal mb-4 ml-2">Next up...</h2>
-            <div className="rounded-3xl shadow-2xl bg-gradient-to-br from-[#406080] to-[#6092B6] p-10 min-w-[400px] w-full flex flex-col" style={{minWidth: 400, width: '100%'}}>
-              {sortedBirthdays.length === 0 ? (
-                <div className="text-white text-lg">There are no profiles yet.</div>
-              ) : (
-                <Carousel
-                  items={sortedBirthdays}
-                  renderItem={(profile) => {
-                    const days = daysUntilBirthday(profile.birthday);
-                    const [month, day] = profile.birthday.split(' ');
-                    return (
-                      <button
-                        className="w-full text-left focus:outline-none hover:bg-black/20 focus:bg-black/30 transition-colors"
-                        style={{ background: 'none', border: 'none', padding: 0 }}
-                        onClick={() => navigate(`/profile/${encodeURIComponent(profile.name)}`)}
-                      >
-                        <div className="flex flex-row items-center justify-between gap-12 w-full">
-                          <div className="min-w-0">
-                            <div className="text-white text-lg font-bold mb-2">{month} {day}</div>
-                            <div className="text-white text-5xl font-serif mb-4 whitespace-nowrap" style={{minWidth: 0}}>{profile.name}</div>
-                          </div>
-                          <div className="flex flex-col items-center justify-center bg-white/20 rounded-2xl px-7 py-4 flex-shrink-0">
-                            <div className="text-5xl font-bold text-white">{days}</div>
-                            <div className="text-base text-white font-semibold">more days</div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  }}
-                />
-              )}
-            </div>
-            {/* Buttons now directly below carousel, same column */}
-            <div className="flex flex-row gap-4 mt-8">
-              <button
-                className="px-8 py-3 rounded-2xl shadow text-lg font-medium transition-colors dashboard-btn-blue"
-                style={{ backgroundColor: '#6092B6', color: '#FFF' }}
-                onClick={() => navigate('/new-profile')}
-              >
-                + new profile
-              </button>
-              <button
-                className="px-8 py-3 rounded-2xl shadow text-lg font-medium transition-colors dashboard-btn-white"
-                style={{ backgroundColor: '#FFFDF7', color: '#28272E' }}
-                onClick={() => navigate('/profiles')}
-              >
-                all profiles
-              </button>
+              </div>
+              {/* Buttons now directly below carousel, same column */}
+              <div className="flex flex-row gap-4 mt-8">
+                <Button
+                  className="px-10 py-7 rounded-2xl shadow text-lg font-medium bg-[#6092B6] text-white hover:bg-[#406080] focus:bg-[#406080] transition-all duration-200"
+                  onClick={() => navigate('/new-profile')}
+                >
+                  + new profile
+                </Button>
+                <Button
+                  className="px-10 py-7 rounded-2xl shadow text-lg font-medium bg-[#FFFDF7] text-[#28272E] hover:bg-[#e5e5e5] focus:bg-[#e5e5e5] transition-all duration-200"
+                  onClick={() => navigate('/profiles')}
+                  variant="secondary"
+                >
+                  all profiles
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </FadeIn>
+      {/* Fixed-position elephant SVG in the bottom right corner, below all content */}
+      <img
+        src="/assets/elephant3.svg"
+        alt="Elephant"
+        style={{
+          position: 'fixed',
+          right: 0,
+          bottom: 0,
+          width: '320px',
+          height: 'auto',
+          zIndex: 0,
+          pointerEvents: 'none',
+          userSelect: 'none',
+        }}
+        draggable={false}
+      />
+      {/* Highlight birthday cells with a background color and force button hover overlays */}
+      <style>{`
+        .birthday-highlight {
+          background: #C3E6FF !important;
+          border-radius: 8px !important;
+        }
+        .animated-gradient {
+          background: linear-gradient(120deg, #fbeee6, #e0e7ef, #c3e6ff, #fbeee6, #e0e7ef);
+          background-size: 300% 300%;
+          animation: gradientMove 16s ease-in-out infinite;
+        }
+        @keyframes gradientMove {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
     </div>
-    {/* Fixed-position elephant SVG in the bottom right corner, below all content */}
-    <img
-      src="/assets/elephant3.svg"
-      alt="Elephant"
-      style={{
-        position: 'fixed',
-        right: 0,
-        bottom: 0,
-        width: '320px',
-        height: 'auto',
-        zIndex: 0,
-        pointerEvents: 'none',
-        userSelect: 'none',
-      }}
-      draggable={false}
-    />
-    {/* Highlight birthday cells with a background color and force button hover overlays */}
-    <style>{`
-      .birthday-highlight {
-        background: #C3E6FF !important;
-        border-radius: 8px !important;
-      }
-      .dashboard-btn-blue:hover, .dashboard-btn-blue:focus {
-        background-color: #406080 !important;
-        filter: brightness(0.85);
-      }
-      .dashboard-btn-white:hover, .dashboard-btn-white:focus {
-        background-color: #e5e5e5 !important;
-        filter: brightness(0.95);
-      }
-    `}</style>
-  </>
   );
 }

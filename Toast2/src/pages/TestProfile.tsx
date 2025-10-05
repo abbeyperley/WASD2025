@@ -1,3 +1,4 @@
+import FadeIn from '@/components/ui/FadeIn';
 
 // Extend the Window interface to allow __testProfilesAdded
 declare global {
@@ -43,18 +44,20 @@ export default function TestProfile() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-100 via-orange-50 to-blue-200 font-[PP Fragment Text Regular]">
-      <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
-        <h2 className="text-3xl font-bold mb-4 text-[#28272E]">Test Profiles Added</h2>
-        <p className="text-lg text-[#28272E]">Name: <b>Denzil</b> — Birthday: <b>September 17</b></p>
-        <p className="text-lg text-[#28272E]">Name: <b>Abbey</b> — Birthday: <b>February 21</b></p>
-        <p className="text-lg text-[#28272E]">Name: <b>Winnie</b> — Birthday: <b>February 8</b></p>
-        <button
-          className="mt-6 px-6 py-2 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors"
-          onClick={handleResetProfiles}
-        >
-          Reset Profiles
-        </button>
-      </div>
+      <FadeIn>
+        <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
+          <h2 className="text-3xl font-bold mb-4 text-[#28272E]">Test Profiles Added</h2>
+          <p className="text-lg text-[#28272E]">Name: <b>Denzil</b>  4 Birthday: <b>September 17</b></p>
+          <p className="text-lg text-[#28272E]">Name: <b>Abbey</b>  4 Birthday: <b>February 21</b></p>
+          <p className="text-lg text-[#28272E]">Name: <b>Winnie</b>  4 Birthday: <b>February 8</b></p>
+          <button
+            className="mt-6 px-6 py-2 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors"
+            onClick={handleResetProfiles}
+          >
+            Reset Profiles
+          </button>
+        </div>
+      </FadeIn>
     </div>
   );
 }
