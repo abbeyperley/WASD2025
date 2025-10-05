@@ -1,4 +1,11 @@
 
+// Extend the Window interface to allow __testProfilesAdded
+declare global {
+  interface Window {
+    __testProfilesAdded?: boolean;
+  }
+}
+
 import { useEffect } from 'react';
 import { useProfiles } from '@/context/ProfileContext';
 

@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+
+import LogoIcon from '@/components/ui/LogoIcon';
 import { Label } from '@/components/ui/label';
 
 
@@ -28,7 +30,10 @@ export default function LandingPage() {
         
         {/* Left Side - Branding */}
         <div className="flex-1 space-y-6 text-center lg:text-left">
-          <h1 className="text-7xl font-bold text-[#28272E]">Toast</h1>
+          <div className="flex flex-row items-center justify-center lg:justify-start gap-4">
+            <h1 className="text-7xl font-bold text-[#28272E] m-0">Toast</h1>
+            <span className="inline-block align-middle"><LogoIcon size={72} /></span>
+          </div>
           <p className="text-xl leading-relaxed max-w-md text-[#28272E]">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
           </p>

@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 type Profile = {
   name: string;
   birthday: string;
+  iconColor?: string;
   reminderPreference?: string;
   categories?: { [key: string]: string };
   notes?: string;
@@ -78,7 +79,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = (name: string, updated: Profile) => {
-    setProfiles((prev) => prev.map((p) => (p.name === name ? updated : p)));
+    setProfiles((prev) => prev.map((p) => (p.name === name ? { ...updated } : p)));
   };
 
   const removeProfile = (name: string) => {

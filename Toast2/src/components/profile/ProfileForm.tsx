@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { useProfiles } from '@/context/ProfileContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,34 @@ export default function ProfileForm({
       : { month: '', day: '' }
   );
   const [reminderPreference, setReminderPreference] = useState(initialProfile?.reminderPreference || '');
+  const prevReminder = useRef(reminderPreference);
+  // Show Sonner toast when reminderPreference changes (but not on initial mount)
+  function handleReminderChange(val: string) {
+    setReminderPreference(val);
+    if (val && prevReminder.current !== val) {
+      toast(
+        <span style={{ fontStyle: 'italic' }}>Notification has been set</span>,
+        {
+          description: `You will be reminded ${reminderLabel(val)} in advance.`,
+          closeButton: false,
+          duration: 3500,
+        }
+      );
+    }
+    prevReminder.current = val;
+  }
+
+  function reminderLabel(val: string) {
+    switch (val) {
+      case '1-day': return '1 day';
+      case '3-days': return '3 days';
+      case '1-week': return '1 week';
+      case '2-weeks': return '2 weeks';
+      case '3-weeks': return '3 weeks';
+      case '1-month': return '1 month';
+      default: return val;
+    }
+  }
   const [notes, setNotes] = useState(initialProfile?.notes || '');
   const [categories, setCategories] = useState<{ [key: string]: string }>(initialProfile?.categories || { Notes: '' });
   const { categories: globalCategories, addCategory } = useProfiles();
@@ -34,10 +63,20 @@ export default function ProfileForm({
   const [showCategoryPopover, setShowCategoryPopover] = useState(false);
   const [deletePopover, setDeletePopover] = useState<string | null>(null);
 
+  const initial = name.trim().charAt(0).toUpperCase();
+  const iconColors = ['#6092B6', '#3E5A42', '#733C11'];
+  const [iconColor] = useState(() => {
+    if (initialProfile?.iconColor) return initialProfile.iconColor;
+    if (!isNew) return '#6092B6';
+    return iconColors[Math.floor(Math.random() * iconColors.length)];
+  });
+  const categoryEntries = Object.entries(categories);
+
   const handleDone = () => {
     const profileData = {
       name,
       birthday: `${birthday.month} ${birthday.day}`,
+      iconColor,
       reminderPreference,
       categories,
       notes,
@@ -63,41 +102,42 @@ export default function ProfileForm({
     setDeletePopover(null);
   };
 
-  const initial = name.trim().charAt(0).toUpperCase();
-  const categoryEntries = Object.entries(categories);
-
   return (
     <div className="max-w-5xl mx-auto">
       <div className="p-12 shadow-xl rounded-[4rem] relative" style={{ backgroundColor: '#FFFDF7' }}>
         <div className="absolute top-8 right-8 z-10">
           <Button
+            className="text-white font-medium rounded-2xl px-8 profileform-btn-blue"
             onClick={handleDone}
-            className="text-white font-medium rounded-2xl px-8 transition-colors hover:opacity-90"
             style={{ backgroundColor: '#6092B6' }}
           >
-            {isNew ? 'Done' : 'Save'}
+            {isNew ? 'Create Profile' : 'Save and Exit'}
           </Button>
         </div>
         <div className="flex gap-12 mb-8">
           <div className="flex-shrink-0">
             <div
               className="w-48 h-48 rounded-full flex items-center justify-center text-6xl font-bold"
-              style={{ backgroundColor: initial ? '#6092B6' : '#E5E5E5', color: initial ? '#FFFDF7' : '#28272E' }}
+              style={{
+                backgroundColor:
+                  !name.trim()
+                    ? '#E3E1DF'
+                    : iconColor || '#6092B6',
+                color: initial ? '#FFFDF7' : '#28272E',
+              }}
             >
               {initial || '?'}
             </div>
           </div>
           <div className="space-y-6 flex-shrink-0" style={{ maxWidth: '500px' }}>
-            <div>
-              <Input
-                type="text"
-                placeholder="Type name..."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="font-bold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                style={{ backgroundColor: 'transparent', color: '#28272E', fontSize: '3rem', height: 'auto', minHeight: '4rem' }}
-              />
-            </div>
+            <Input
+              type="text"
+              placeholder="Type name..."
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="font-bold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              style={{ backgroundColor: 'transparent', color: '#28272E', fontSize: '3rem', height: 'auto', minHeight: '4rem' }}
+            />
             <div>
               <Label className="font-bold mb-2 block" style={{ color: '#28272E', fontSize: '1.25rem' }}>
                 Birthday
@@ -146,7 +186,7 @@ export default function ProfileForm({
               <Label className="font-bold mb-2 block" style={{ color: '#28272E', fontSize: '1.25rem' }}>
                 Remind me
               </Label>
-              <Select value={reminderPreference} onValueChange={setReminderPreference}>
+              <Select value={reminderPreference} onValueChange={handleReminderChange}>
                 <SelectTrigger
                   className="h-14 rounded-2xl text-lg"
                   style={{ backgroundColor: '#FFFFFF', color: reminderPreference ? '#28272E' : '#999', borderColor: '#E5E5E5', width: '280px' }}
@@ -175,7 +215,7 @@ export default function ProfileForm({
                 <Popover open={deletePopover === categoryName} onOpenChange={(open) => setDeletePopover(open ? categoryName : null)}>
                   <PopoverTrigger asChild>
                     <button
-                      className="p-1 hover:bg-gray-200 rounded transition-colors"
+                      className="p-1 hover:bg-gray-200 rounded transition-colors hover:bg-black/10"
                       style={{ color: '#28272E' }}
                     >
                       <X className="w-4 h-4" />
@@ -183,8 +223,8 @@ export default function ProfileForm({
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-2" style={{ backgroundColor: '#FFFDF7' }}>
                     <button
+                      className="px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded transition-colors hover:bg-black/10"
                       onClick={() => handleDeleteCategory(categoryName)}
-                      className="px-4 py-2 text-sm font-medium hover:bg-gray-100 rounded transition-colors"
                       style={{ color: '#ef4444' }}
                     >
                       Delete category
@@ -205,7 +245,7 @@ export default function ProfileForm({
         <Popover open={showCategoryPopover} onOpenChange={setShowCategoryPopover}>
           <PopoverTrigger asChild>
             <Button
-              className="text-white font-medium rounded-2xl px-6 transition-colors hover:opacity-90"
+              className="text-white font-medium rounded-2xl px-6 profileform-btn-blue"
               style={{ backgroundColor: '#6092B6' }}
             >
               + Category
@@ -230,9 +270,9 @@ export default function ProfileForm({
                     style={{ backgroundColor: 'transparent', color: '#28272E' }}
                   />
                   <Button
+                    className="h-12 w-12 rounded-2xl p-0 profileform-btn-blue"
                     onClick={handleAddCategory}
                     disabled={!newCategoryName.trim()}
-                    className="h-12 w-12 rounded-2xl p-0 transition-colors hover:opacity-90"
                     style={{ backgroundColor: '#6092B6' }}
                   >
                     <Check className="w-5 h-5 text-white" />
@@ -245,6 +285,7 @@ export default function ProfileForm({
                   <div className="space-y-2">
                     {globalCategories.map((cat) => (
                       <button
+                        className="w-full text-left px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors hover:bg-black/10"
                         key={cat}
                         onClick={() => {
                           if (!categories[cat]) {
@@ -252,7 +293,6 @@ export default function ProfileForm({
                           }
                           setShowCategoryPopover(false);
                         }}
-                        className="w-full text-left px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors"
                         style={{ color: '#28272E' }}
                       >
                         {cat}
@@ -265,6 +305,15 @@ export default function ProfileForm({
           </PopoverContent>
         </Popover>
         {/* Removed duplicate Done button at the bottom */}
+        <style>{`
+          .profileform-btn-blue {
+            transition: background 0.18s, filter 0.18s;
+          }
+          .profileform-btn-blue:hover, .profileform-btn-blue:focus {
+            background-color: #3E5A42 !important;
+            filter: brightness(0.92);
+          }
+        `}</style>
       </div>
     </div>
   );
