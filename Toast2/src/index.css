@@ -2,3 +2,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+	.bg-popover {
+		--tw-bg-opacity: 1;
+		background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+	}
+	.text-popover-foreground {
+		--tw-text-opacity: 1;
+		color: rgb(40 39 46 / var(--tw-text-opacity));
+	}
+}

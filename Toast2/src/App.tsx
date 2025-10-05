@@ -1,18 +1,25 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useProfiles } from './context/ProfileContext';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
+
 export default function LandingPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const navigate = useNavigate();
+  const { signupName, setSignupName } = useProfiles();
 
   const handleSubmit = () => {
-    console.log('Form submitted:', { email, password, isSignUp });
+    // You can keep your form logic here if needed
+    // signupName is already stored in context
+    navigate('/dashboard');
   };
 
   return (
@@ -46,6 +53,21 @@ export default function LandingPage() {
             
             <CardContent>
               <div className="space-y-6">
+                {isSignUp && (
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="font-bold text-[#28272E] text-[1.3rem]">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Your name"
+                      value={signupName}
+                      onChange={(e) => setSignupName(e.target.value)}
+                      className="border-0 rounded-2xl h-14 text-lg bg-white text-[#28272E]"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="email" className="font-bold text-[#28272E] text-[1.3rem]">
                     Email
@@ -53,7 +75,7 @@ export default function LandingPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="toasttogether@gmail.com"
+                    placeholder="toasttogether@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="border-0 rounded-2xl h-14 text-lg bg-white text-[#28272E]"
@@ -101,7 +123,7 @@ export default function LandingPage() {
 
                 <Button
                   onClick={handleSubmit}
-                  className="w-full h-14 text-white text-xl font-medium rounded-2xl transition-colors hover:opacity-90 bg-[#6092B6]"
+                  className="w-full h-14 text-white text-xl font-medium rounded-3xl transition-colors hover:opacity-90 bg-[#6092B6]"
                 >
                   {isSignUp ? "Sign Up" : "Sign In"}
                 </Button>
