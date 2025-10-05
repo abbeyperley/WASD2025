@@ -2,6 +2,9 @@ import React from 'react';
 import { useProfiles } from '@/context/ProfileContext';
 import { useNavigate } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+
 
 // Helper to convert 'Month Day' (e.g., 'February 8') to a JS Date for the current year
 function birthdayStringToDate(birthday: string): Date | null {
@@ -20,18 +23,18 @@ function getGreeting() {
   return 'Good evening,';
 }
 
-export default function Dashboard() {
 
+export default function Dashboard() {
   const { signupName, profiles } = useProfiles();
   const greeting = getGreeting();
   const navigate = useNavigate();
-  // Debug: log profiles to verify data
-  console.log('profiles:', profiles);
 
+  // State for popover
+  const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
 
   // Helper to check if a date matches any profile's birthday (month and day only)
-  function isBirthday(date: Date) {
-    return profiles.some((profile: { birthday: string }) => {
+  function getBirthdaysOnDate(date: Date) {
+    return profiles.filter((profile: { birthday: string }) => {
       const [month, day] = profile.birthday.split(' ');
       if (!month || !day) return false;
       const birthdayMonth = new Date(`${month} 1, 2000`).getMonth();
@@ -40,8 +43,39 @@ export default function Dashboard() {
     });
   }
 
-  // Custom modifier for birthdays (works for any year)
-  const birthdayModifier = (date: Date) => isBirthday(date);
+  // Precompute a set of unique birthday days (month-day) for all profiles
+  const uniqueBirthdayDays = React.useMemo(() => {
+    const set = new Set();
+    profiles.forEach((profile: { birthday: string }) => {
+      const [month, day] = profile.birthday.split(' ');
+      if (month && day) {
+        set.add(`${month}-${parseInt(day, 10)}`);
+      }
+    });
+    return set;
+  }, [profiles]);
+
+  // Modifier: only one dot per unique birthday day
+  const birthdayModifier = (date: Date) => {
+    // Only one dot per unique birthday per day, regardless of outside days
+    const month = date.toLocaleString('default', { month: 'long' });
+    const day = date.getDate();
+    return uniqueBirthdayDays.has(`${month}-${day}`);
+  };
+
+  // Handle day click: always set selectedDate, which controls popover
+  function handleDayClick(date: Date) {
+    if (birthdayModifier(date)) {
+      setSelectedDate(date);
+    } else {
+      setSelectedDate(null);
+    }
+  }
+
+  // Get unique birthday profiles for selected date
+  const birthdayProfiles = selectedDate
+    ? Array.from(new Map(getBirthdaysOnDate(selectedDate).map(p => [p.name, p])).values())
+    : [];
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-amber-100 via-orange-50 to-blue-200 font-[PP Fragment Text Regular]">
@@ -58,28 +92,43 @@ export default function Dashboard() {
           + new profile
         </button>
         <div className="mt-8 p-8 rounded-3xl shadow-xl bg-white" style={{ width: '480px', maxWidth: '100%' }}>
-          <Calendar
-            modifiers={{ birthday: birthdayModifier }}
-            modifiersClassNames={{ birthday: 'birthday-highlight' }}
-            className="w-full text-lg"
-          />
+          <Popover open={!!selectedDate} onOpenChange={open => { if (!open) setSelectedDate(null); }}>
+            <PopoverTrigger asChild>
+              <div>
+                <Calendar
+                  showOutsideDays={false}
+                  modifiers={{ birthday: birthdayModifier }}
+                  modifiersClassNames={{ birthday: 'birthday-highlight' }}
+                  className="w-full text-lg"
+                  onDayClick={handleDayClick}
+                />
+              </div>
+            </PopoverTrigger>
+            <PopoverContent align="center" sideOffset={8} className="text-center">
+              {birthdayProfiles.length > 0 && (
+                <div>
+                  {birthdayProfiles.map((profile) => (
+                    <div key={profile.name} className="mb-2">
+                      <div><b>{profile.name}</b>'s birthday</div>
+                      <Button
+                        className="mt-2"
+                        onClick={() => navigate(`/profile/${encodeURIComponent(profile.name)}`)}
+                      >
+                        View Profile
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
-      {/* Add this style for the birthday highlight as a dot below the date */}
+      {/* Highlight birthday cells with a background color */}
       <style>{`
         .birthday-highlight {
-          position: relative;
-          background-color: transparent !important;
-        }
-        .birthday-highlight::after {
-          content: '';
-          display: block;
-          margin: 0 auto;
-          width: 0.5em;
-          height: 0.5em;
-          border-radius: 50%;
-          background: #6092B6;
-          margin-top: 0.25em;
+          background: #C3E6FF !important;
+          border-radius: 8px !important;
         }
       `}</style>
     </div>

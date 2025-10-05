@@ -9,8 +9,10 @@ import TestProfile from './pages/TestProfile';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ProfileProvider } from './context/ProfileContext';
 
+// Commented out StrictMode to avoid double-mounting in development
+// <StrictMode>
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // <StrictMode>
     <ProfileProvider>
       <BrowserRouter>
         <Routes>
@@ -21,5 +23,5 @@ createRoot(document.getElementById('root')!).render(
         </Routes>
       </BrowserRouter>
     </ProfileProvider>
-  </StrictMode>,
+  // </StrictMode>
 );
