@@ -107,17 +107,26 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-amber-100 via-orange-50 to-blue-200 font-[PP Fragment Text Regular]">
       <div className="flex flex-col items-start">
-        <h1 className="text-6xl font-bold text-[#28272E] leading-tight">
-          {greeting}<br />
-          {signupName ? signupName : ''}
+        <h1 className="text-6xl text-[#28272E] leading-tight">
+          <span className="font-normal text-5xl">{greeting}</span><br />
+          <span className="font-bold">{signupName ? signupName : ''}</span>
         </h1>
-        <button
-          className="mt-6 px-8 py-3 rounded-2xl shadow text-lg font-medium transition-colors"
-          style={{ backgroundColor: '#FFFDF7', color: '#28272E' }}
-          onClick={() => navigate('/new-profile')}
-        >
-          + new profile
-        </button>
+        <div className="flex flex-row gap-4 mt-6">
+          <button
+            className="px-8 py-3 rounded-2xl shadow text-lg font-medium transition-colors"
+            style={{ backgroundColor: '#6092B6', color: '#FFF' }}
+            onClick={() => navigate('/new-profile')}
+          >
+            + new profile
+          </button>
+          <button
+            className="px-8 py-3 rounded-2xl shadow text-lg font-medium transition-colors"
+            style={{ backgroundColor: '#FFFDF7', color: '#28272E' }}
+            onClick={() => navigate('/profiles')}
+          >
+            all profiles
+          </button>
+        </div>
         <div className="flex flex-row gap-12 mt-8 w-full">
           {/* Calendar Section */}
           <div className="p-8 rounded-3xl shadow-xl bg-white" style={{ width: '480px', maxWidth: '100%', flexShrink: 0 }}>
@@ -155,7 +164,7 @@ export default function Dashboard() {
           {/* Next up... birthday carousel */}
           <div className="flex flex-col items-start justify-start md:mt-0 mt-0">
             <h2 className="text-3xl font-normal mb-4 ml-2">Next up...</h2>
-            <div className="rounded-2xl shadow-xl bg-gradient-to-br from-[#5B5B5B] to-[#7A8CB7] p-6 min-w-[320px] max-w-[400px] w-full">
+            <div className="rounded-3xl shadow-2xl bg-gradient-to-br from-[#406080] to-[#6092B6] p-10 min-w-[400px] max-w-[520px] w-full">
               {sortedBirthdays.length === 0 ? (
                 <div className="text-white text-lg">There are no profiles yet.</div>
               ) : (
@@ -170,14 +179,14 @@ export default function Dashboard() {
                         style={{ background: 'none', border: 'none', padding: 0 }}
                         onClick={() => navigate(`/profile/${encodeURIComponent(profile.name)}`)}
                       >
-                        <div className="flex flex-row items-center justify-between">
+                        <div className="flex flex-row items-center justify-between gap-12">
                           <div>
-                            <div className="text-white text-sm font-bold mb-1">{month} {day}</div>
-                            <div className="text-white text-3xl font-serif mb-2">{profile.name}</div>
+                            <div className="text-white text-lg font-bold mb-2">{month} {day}</div>
+                            <div className="text-white text-5xl font-serif mb-4">{profile.name}</div>
                           </div>
-                          <div className="flex flex-col items-center justify-center bg-white/20 rounded-xl px-4 py-2">
-                            <div className="text-3xl font-bold text-white">{days}</div>
-                            <div className="text-xs text-white font-semibold">more days</div>
+                          <div className="flex flex-col items-center justify-center bg-white/20 rounded-2xl px-7 py-4">
+                            <div className="text-5xl font-bold text-white">{days}</div>
+                            <div className="text-base text-white font-semibold">more days</div>
                           </div>
                         </div>
                       </button>

@@ -5,12 +5,15 @@ import type { ReactNode } from 'react';
 type Profile = {
   name: string;
   birthday: string;
-  // Add more fields as needed
+  reminderPreference?: string;
+  categories?: { [key: string]: string };
+  notes?: string;
 };
 
 type ProfileContextType = {
   profiles: Profile[];
   addProfile: (profile: Profile) => void;
+  updateProfile: (name: string, updated: Profile) => void;
   removeProfile: (name: string) => void;
   getProfileBirthday: (name: string) => string | undefined;
   signupName: string;
@@ -39,8 +42,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('profiles', JSON.stringify(profiles));
   }, [profiles]);
 
+
   const addProfile = (profile: Profile) => {
     setProfiles((prev) => [...prev, profile]);
+  };
+
+  const updateProfile = (name: string, updated: Profile) => {
+    setProfiles((prev) => prev.map((p) => (p.name === name ? updated : p)));
   };
 
   const removeProfile = (name: string) => {
@@ -52,7 +60,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ProfileContext.Provider value={{ profiles, addProfile, removeProfile, getProfileBirthday, signupName, setSignupName }}>
+    <ProfileContext.Provider value={{ profiles, addProfile, updateProfile, removeProfile, getProfileBirthday, signupName, setSignupName }}>
       {children}
     </ProfileContext.Provider>
   );
