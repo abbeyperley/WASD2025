@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
 // Profile type
@@ -17,6 +17,7 @@ type ProfileContextType = {
   setSignupName: (name: string) => void;
 };
 
+
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export function useProfiles() {
@@ -26,8 +27,17 @@ export function useProfiles() {
 }
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>(() => {
+    // Load from localStorage if available
+    const stored = localStorage.getItem('profiles');
+    return stored ? JSON.parse(stored) : [];
+  });
   const [signupName, setSignupName] = useState('');
+
+  // Save profiles to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('profiles', JSON.stringify(profiles));
+  }, [profiles]);
 
   const addProfile = (profile: Profile) => {
     setProfiles((prev) => [...prev, profile]);

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useProfiles } from '@/context/ProfileContext';
 
 export default function TestProfile() {
-  const { addProfile } = useProfiles();
+  const { addProfile, profiles } = useProfiles();
 
 
   useEffect(() => {
@@ -11,6 +11,9 @@ export default function TestProfile() {
     addProfile({ name: 'Winnie', birthday: 'February 8' });
     // eslint-disable-next-line
   }, []);
+
+  // Debug: log profiles to verify data
+  console.log('profiles:', profiles);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-100 via-orange-50 to-blue-200 font-[PP Fragment Text Regular]">

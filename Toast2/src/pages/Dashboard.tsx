@@ -25,11 +25,23 @@ export default function Dashboard() {
   const { signupName, profiles } = useProfiles();
   const greeting = getGreeting();
   const navigate = useNavigate();
+  // Debug: log profiles to verify data
+  console.log('profiles:', profiles);
 
-  // Gather all birthday dates for this year
-  const birthdayDates = profiles
-    .map((profile: { birthday: string }) => birthdayStringToDate(profile.birthday))
-    .filter((d: Date | null): d is Date => d !== null);
+
+  // Helper to check if a date matches any profile's birthday (month and day only)
+  function isBirthday(date: Date) {
+    return profiles.some((profile: { birthday: string }) => {
+      const [month, day] = profile.birthday.split(' ');
+      if (!month || !day) return false;
+      const birthdayMonth = new Date(`${month} 1, 2000`).getMonth();
+      const birthdayDay = parseInt(day, 10);
+      return date.getMonth() === birthdayMonth && date.getDate() === birthdayDay;
+    });
+  }
+
+  // Custom modifier for birthdays (works for any year)
+  const birthdayModifier = (date: Date) => isBirthday(date);
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-amber-100 via-orange-50 to-blue-200 font-[PP Fragment Text Regular]">
@@ -47,15 +59,29 @@ export default function Dashboard() {
         </button>
         <div className="mt-8 p-8 rounded-3xl shadow-xl bg-white" style={{ width: '480px', maxWidth: '100%' }}>
           <Calendar
-            selected={birthdayDates}
-            modifiers={{ birthday: birthdayDates }}
+            modifiers={{ birthday: birthdayModifier }}
             modifiersClassNames={{ birthday: 'birthday-highlight' }}
             className="w-full text-lg"
           />
         </div>
       </div>
-      {/* Add this style for the birthday highlight */}
-      <style>{`.birthday-highlight { background-color: #C3E6FF !important; }`}</style>
+      {/* Add this style for the birthday highlight as a dot below the date */}
+      <style>{`
+        .birthday-highlight {
+          position: relative;
+          background-color: transparent !important;
+        }
+        .birthday-highlight::after {
+          content: '';
+          display: block;
+          margin: 0 auto;
+          width: 0.5em;
+          height: 0.5em;
+          border-radius: 50%;
+          background: #6092B6;
+          margin-top: 0.25em;
+        }
+      `}</style>
     </div>
   );
 }
