@@ -18,6 +18,9 @@ type ProfileContextType = {
   getProfileBirthday: (name: string) => string | undefined;
   signupName: string;
   setSignupName: (name: string) => void;
+  categories: string[];
+  addCategory: (category: string) => void;
+  removeCategory: (category: string) => void;
 };
 
 
@@ -29,18 +32,45 @@ export function useProfiles() {
   return context;
 }
 
+
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [profiles, setProfiles] = useState<Profile[]>(() => {
-    // Load from localStorage if available
     const stored = localStorage.getItem('profiles');
     return stored ? JSON.parse(stored) : [];
   });
   const [signupName, setSignupName] = useState('');
+  const [categories, setCategories] = useState<string[]>(() => {
+    const stored = localStorage.getItem('categories');
+    if (stored) return JSON.parse(stored);
+    // Migrate unique categories from existing profiles
+    const storedProfiles = localStorage.getItem('profiles');
+    if (storedProfiles) {
+      const profilesArr = JSON.parse(storedProfiles);
+      const catSet = new Set<string>();
+      profilesArr.forEach((p: any) => {
+        if (p.categories) {
+          Object.keys(p.categories).forEach((cat: string) => catSet.add(cat));
+        }
+      });
+      return Array.from(catSet);
+    }
+    return ['Notes'];
+  });
 
-  // Save profiles to localStorage whenever they change
+  // Save profiles and categories to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('profiles', JSON.stringify(profiles));
   }, [profiles]);
+  useEffect(() => {
+    localStorage.setItem('categories', JSON.stringify(categories));
+  }, [categories]);
+  const addCategory = (category: string) => {
+    setCategories((prev) => prev.includes(category) ? prev : [...prev, category]);
+  };
+
+  const removeCategory = (category: string) => {
+    setCategories((prev) => prev.filter((c) => c !== category));
+  };
 
 
   const addProfile = (profile: Profile) => {
@@ -60,7 +90,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ProfileContext.Provider value={{ profiles, addProfile, updateProfile, removeProfile, getProfileBirthday, signupName, setSignupName }}>
+    <ProfileContext.Provider value={{ profiles, addProfile, updateProfile, removeProfile, getProfileBirthday, signupName, setSignupName, categories, addCategory, removeCategory }}>
       {children}
     </ProfileContext.Provider>
   );

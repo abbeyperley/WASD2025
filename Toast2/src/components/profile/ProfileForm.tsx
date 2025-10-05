@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useProfiles } from '@/context/ProfileContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +29,7 @@ export default function ProfileForm({
   const [reminderPreference, setReminderPreference] = useState(initialProfile?.reminderPreference || '');
   const [notes, setNotes] = useState(initialProfile?.notes || '');
   const [categories, setCategories] = useState<{ [key: string]: string }>(initialProfile?.categories || { Notes: '' });
-  const [existingCategories, setExistingCategories] = useState<string[]>(Object.keys(initialProfile?.categories || { Notes: '' }));
+  const { categories: globalCategories, addCategory } = useProfiles();
   const [newCategoryName, setNewCategoryName] = useState('');
   const [showCategoryPopover, setShowCategoryPopover] = useState(false);
   const [deletePopover, setDeletePopover] = useState<string | null>(null);
@@ -47,13 +48,11 @@ export default function ProfileForm({
   const handleAddCategory = () => {
     if (newCategoryName.trim()) {
       setCategories((prev) => ({ ...prev, [newCategoryName]: '' }));
-      if (!existingCategories.includes(newCategoryName)) {
-        setExistingCategories((prev) => [...prev, newCategoryName]);
-      }
+      addCategory(newCategoryName);
       setNewCategoryName('');
       setShowCategoryPopover(false);
     }
-  };
+  } 
 
   const handleDeleteCategory = (categoryName: string) => {
     setCategories((prev) => {
@@ -240,11 +239,11 @@ export default function ProfileForm({
                   </Button>
                 </div>
               </div>
-              {existingCategories.length > 0 && (
+              {globalCategories.length > 0 && (
                 <div>
                   <h3 className="text-xl font-bold mb-2" style={{ color: '#28272E' }}>existing category</h3>
                   <div className="space-y-2">
-                    {existingCategories.map((cat) => (
+                    {globalCategories.map((cat) => (
                       <button
                         key={cat}
                         onClick={() => {
