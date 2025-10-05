@@ -35,28 +35,13 @@ export function useProfiles() {
 
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
+  // Always start with only the Abbey profile and default category
   const [profiles, setProfiles] = useState<Profile[]>(() => {
     const stored = localStorage.getItem('profiles');
     return stored ? JSON.parse(stored) : [];
   });
   const [signupName, setSignupName] = useState('');
-  const [categories, setCategories] = useState<string[]>(() => {
-    const stored = localStorage.getItem('categories');
-    if (stored) return JSON.parse(stored);
-    // Migrate unique categories from existing profiles
-    const storedProfiles = localStorage.getItem('profiles');
-    if (storedProfiles) {
-      const profilesArr = JSON.parse(storedProfiles);
-      const catSet = new Set<string>();
-      profilesArr.forEach((p: any) => {
-        if (p.categories) {
-          Object.keys(p.categories).forEach((cat: string) => catSet.add(cat));
-        }
-      });
-      return Array.from(catSet);
-    }
-    return ['Notes'];
-  });
+  const [categories, setCategories] = useState<string[]>(['Notes']);
 
   // Save profiles and categories to localStorage whenever they change
   useEffect(() => {
