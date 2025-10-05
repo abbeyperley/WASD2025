@@ -27,7 +27,9 @@ export default function Profiles() {
           <p className="text-2xl text-[#28272E] mb-12 font-normal text-center">Manage all your toasts</p>
           <div className="w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
             {profiles.length === 0 ? (
-              <div className="col-span-3 text-center text-xl text-[#28272E]">No profiles yet.</div>
+              <div className="col-span-4 flex items-center justify-center min-h-[300px]">
+                <span className="text-center text-base text-[#28272E] opacity-60">No profiles yet.</span>
+              </div>
             ) : (
               profiles.map((profile) => {
                 const initial = profile.name.trim().charAt(0).toUpperCase();
