@@ -4,6 +4,30 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import { Carousel } from '@/components/ui/carousel';
+// Helper: get days until next birthday (ignores year)
+function daysUntilBirthday(birthday: string): number {
+  const now = new Date();
+  const [month, day] = birthday.split(' ');
+  if (!month || !day) return Infinity;
+  const thisYear = now.getFullYear();
+  let bday = new Date(`${month} ${day}, ${thisYear}`);
+  if (
+    bday.getMonth() < now.getMonth() ||
+    (bday.getMonth() === now.getMonth() && bday.getDate() < now.getDate())
+  ) {
+    bday = new Date(`${month} ${day}, ${thisYear + 1}`);
+  }
+  const diff = bday.getTime() - now.setHours(0, 0, 0, 0);
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+// Helper: sort profiles by soonest birthday
+function getSortedUpcomingBirthdays(profiles: { name: string; birthday: string }[]) {
+  return [...profiles]
+    .filter(p => p.birthday)
+    .sort((a, b) => daysUntilBirthday(a.birthday) - daysUntilBirthday(b.birthday));
+}
 
 
 // Helper to convert 'Month Day' (e.g., 'February 8') to a JS Date for the current year
@@ -77,6 +101,9 @@ export default function Dashboard() {
     ? Array.from(new Map(getBirthdaysOnDate(selectedDate).map(p => [p.name, p])).values())
     : [];
 
+  // Prepare carousel data
+  const sortedBirthdays = React.useMemo(() => getSortedUpcomingBirthdays(profiles), [profiles]);
+
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-amber-100 via-orange-50 to-blue-200 font-[PP Fragment Text Regular]">
       <div className="flex flex-col items-start">
@@ -91,37 +118,75 @@ export default function Dashboard() {
         >
           + new profile
         </button>
-        <div className="mt-8 p-8 rounded-3xl shadow-xl bg-white" style={{ width: '480px', maxWidth: '100%' }}>
-          <Popover open={!!selectedDate} onOpenChange={open => { if (!open) setSelectedDate(null); }}>
-            <PopoverTrigger asChild>
-              <div>
-                <Calendar
-                  showOutsideDays={false}
-                  modifiers={{ birthday: birthdayModifier }}
-                  modifiersClassNames={{ birthday: 'birthday-highlight' }}
-                  className="w-full text-lg"
-                  onDayClick={handleDayClick}
-                />
-              </div>
-            </PopoverTrigger>
-            <PopoverContent align="center" sideOffset={8} className="text-center">
-              {birthdayProfiles.length > 0 && (
+        <div className="flex flex-row gap-12 mt-8 w-full">
+          {/* Calendar Section */}
+          <div className="p-8 rounded-3xl shadow-xl bg-white" style={{ width: '480px', maxWidth: '100%', flexShrink: 0 }}>
+            <Popover open={!!selectedDate} onOpenChange={open => { if (!open) setSelectedDate(null); }}>
+              <PopoverTrigger asChild>
                 <div>
-                  {birthdayProfiles.map((profile) => (
-                    <div key={profile.name} className="mb-2">
-                      <div><b>{profile.name}</b>'s birthday</div>
-                      <Button
-                        className="mt-2"
+                  <Calendar
+                    showOutsideDays={false}
+                    modifiers={{ birthday: birthdayModifier }}
+                    modifiersClassNames={{ birthday: 'birthday-highlight' }}
+                    className="w-full text-lg"
+                    onDayClick={handleDayClick}
+                  />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent side="right" align="center" sideOffset={8} className="text-center">
+                {birthdayProfiles.length > 0 && (
+                  <div>
+                    {birthdayProfiles.map((profile) => (
+                      <div key={profile.name} className="mb-2">
+                        <div><b>{profile.name}</b>'s birthday</div>
+                        <Button
+                          className="mt-2"
+                          onClick={() => navigate(`/profile/${encodeURIComponent(profile.name)}`)}
+                        >
+                          View Profile
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
+          </div>
+          {/* Next up... birthday carousel */}
+          <div className="flex flex-col items-start justify-start md:mt-0 mt-0">
+            <h2 className="text-3xl font-normal mb-4 ml-2">Next up...</h2>
+            <div className="rounded-2xl shadow-xl bg-gradient-to-br from-[#5B5B5B] to-[#7A8CB7] p-6 min-w-[320px] max-w-[400px] w-full">
+              {sortedBirthdays.length === 0 ? (
+                <div className="text-white text-lg">There are no profiles yet.</div>
+              ) : (
+                <Carousel
+                  items={sortedBirthdays}
+                  renderItem={(profile) => {
+                    const days = daysUntilBirthday(profile.birthday);
+                    const [month, day] = profile.birthday.split(' ');
+                    return (
+                      <button
+                        className="w-full text-left focus:outline-none"
+                        style={{ background: 'none', border: 'none', padding: 0 }}
                         onClick={() => navigate(`/profile/${encodeURIComponent(profile.name)}`)}
                       >
-                        View Profile
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                        <div className="flex flex-row items-center justify-between">
+                          <div>
+                            <div className="text-white text-sm font-bold mb-1">{month} {day}</div>
+                            <div className="text-white text-3xl font-serif mb-2">{profile.name}</div>
+                          </div>
+                          <div className="flex flex-col items-center justify-center bg-white/20 rounded-xl px-4 py-2">
+                            <div className="text-3xl font-bold text-white">{days}</div>
+                            <div className="text-xs text-white font-semibold">more days</div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  }}
+                />
               )}
-            </PopoverContent>
-          </Popover>
+            </div>
+        </div>
         </div>
       </div>
       {/* Highlight birthday cells with a background color */}
